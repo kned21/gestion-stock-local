@@ -40,9 +40,6 @@
 ## 🚀 Installation
 
 1. Clonez ce dépôt :
-   ```bash
-   git clone https://github.com/votre-compte/gestion-stock-pro.git
-   ```
 
 2. Ouvrez le projet dans votre navigateur :
    - Double-cliquez sur le fichier `index.html` dans le dossier du projet
