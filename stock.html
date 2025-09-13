@@ -1,0 +1,1142 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion de Stock avec Alertes</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .tabs {
+            display: flex;
+            background: #ecf0f1;
+            border-bottom: 3px solid #3498db;
+        }
+        
+        .tab {
+            flex: 1;
+            padding: 15px 20px;
+            background: #bdc3c7;
+            border: none;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .tab.active {
+            background: #3498db;
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+        .tab:hover {
+            background: #3498db;
+            color: white;
+        }
+        
+        .tab-content {
+            display: none;
+            padding: 30px;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        
+        .search-box, .filter-select {
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .search-box:focus, .filter-select:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 10px rgba(52, 152, 219, 0.3);
+        }
+        
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #27ae60, #229954);
+            color: white;
+        }
+        
+        .btn-warning {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            color: white;
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .table-container {
+            overflow-x: auto;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+        
+        th {
+            background: linear-gradient(135deg, #34495e, #2c3e50);
+            color: white;
+            padding: 15px 10px;
+            text-align: left;
+            font-weight: bold;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        
+        td {
+            padding: 12px 10px;
+            border-bottom: 1px solid #eee;
+            transition: all 0.3s ease;
+        }
+        
+        tr:hover {
+            background: rgba(52, 152, 219, 0.1);
+            transform: scale(1.01);
+        }
+        
+        .stock-low {
+            background: rgba(231, 76, 60, 0.1) !important;
+            border-left: 4px solid #e74c3c;
+        }
+        
+        .stock-medium {
+            background: rgba(243, 156, 18, 0.1) !important;
+            border-left: 4px solid #f39c12;
+        }
+        
+        .stock-good {
+            background: rgba(39, 174, 96, 0.1) !important;
+            border-left: 4px solid #27ae60;
+        }
+        
+        .alert-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .alert-critical { background: #e74c3c; color: white; }
+        .alert-low { background: #f39c12; color: white; }
+        .alert-good { background: #27ae60; color: white; }
+        
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .form-group label {
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .form-group input, .form-group select {
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 10px rgba(52, 152, 219, 0.3);
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #fff, #f8f9fa);
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            border: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+        }
+        
+        .stat-card.danger { border-color: #e74c3c; }
+        .stat-card.warning { border-color: #f39c12; }
+        .stat-card.success { border-color: #27ae60; }
+        .stat-card.info { border-color: #3498db; }
+        
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            color: #666;
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+        
+        .modal.show { display: block; }
+        
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+        
+        .close {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 2rem;
+            cursor: pointer;
+            color: #999;
+        }
+        
+        .close:hover { color: #333; }
+        
+        @media (max-width: 768px) {
+            .header h1 { font-size: 1.8rem; }
+            .tabs { flex-direction: column; }
+            .controls { flex-direction: column; }
+            .form-grid { grid-template-columns: 1fr; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏪 Système de Gestion de Stock</h1>
+            <p>Gestion complète avec alertes automatiques et suivi fournisseurs</p>
+        </div>
+        
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('stock')">📦 Stock Principal</button>
+            <button class="tab" onclick="showTab('movements')">🔄 Mouvements</button>
+            <button class="tab" onclick="showTab('suppliers')">🏭 Fournisseurs</button>
+            <button class="tab" onclick="showTab('alerts')">⚠️ Alertes</button>
+        </div>
+        
+        <div id="stock" class="tab-content active">
+            <div class="stats-grid">
+                <div class="stat-card danger">
+                    <div class="stat-number" id="criticalCount">0</div>
+                    <div class="stat-label">Stock Critique</div>
+                </div>
+                <div class="stat-card warning">
+                    <div class="stat-number" id="lowCount">0</div>
+                    <div class="stat-label">Stock Bas</div>
+                </div>
+                <div class="stat-card success">
+                    <div class="stat-number" id="goodCount">0</div>
+                    <div class="stat-label">Stock Bon</div>
+                </div>
+                <div class="stat-card info">
+                    <div class="stat-number" id="totalProducts">99</div>
+                    <div class="stat-label">Total Produits</div>
+                </div>
+            </div>
+            
+            <div class="controls">
+                <input type="text" class="search-box" id="searchStock" placeholder="🔍 Rechercher un produit...">
+                <select class="filter-select" id="supplierFilter">
+                    <option value="">Tous les fournisseurs</option>
+                </select>
+                <select class="filter-select" id="stockFilter">
+                    <option value="">Tous les stocks</option>
+                    <option value="critical">Stock critique (≤5)</option>
+                    <option value="low">Stock bas (6-20)</option>
+                    <option value="good">Stock bon (>20)</option>
+                </select>
+                <button class="btn btn-primary" onclick="exportToExcel()">📊 Exporter Excel</button>
+                <button class="btn btn-success" onclick="showAddModal()">➕ Ajouter Produit</button>
+            </div>
+            
+            <div class="table-container">
+                <table id="stockTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Produit</th>
+                            <th>Fournisseur</th>
+                            <th>Stock Actuel</th>
+                            <th>Seuil Min</th>
+                            <th>Seuil Max</th>
+                            <th>Prix Unitaire</th>
+                            <th>Valeur Stock</th>
+                            <th>Statut</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="stockTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div id="movements" class="tab-content">
+            <div class="controls">
+                <button class="btn btn-success" onclick="showEntryModal()">📥 Entrée Stock</button>
+                <button class="btn btn-warning" onclick="showExitModal()">📤 Sortie Stock</button>
+                <input type="date" class="search-box" id="dateFilter">
+                <select class="filter-select" id="movementTypeFilter">
+                    <option value="">Tous les mouvements</option>
+                    <option value="entry">Entrées</option>
+                    <option value="exit">Sorties</option>
+                </select>
+            </div>
+            
+            <div class="table-container">
+                <table id="movementsTable">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Type</th>
+                            <th>Produit</th>
+                            <th>Quantité</th>
+                            <th>Motif</th>
+                            <th>Stock Avant</th>
+                            <th>Stock Après</th>
+                        </tr>
+                    </thead>
+                    <tbody id="movementsTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div id="suppliers" class="tab-content">
+            <div class="table-container">
+                <table id="suppliersTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nom du Fournisseur</th>
+                            <th>Nb Produits</th>
+                            <th>Contact</th>
+                            <th>Email</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="suppliersTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div id="alerts" class="tab-content">
+            <div class="table-container">
+                <table id="alertsTable">
+                    <thead>
+                        <tr>
+                            <th>Priorité</th>
+                            <th>Produit</th>
+                            <th>Fournisseur</th>
+                            <th>Stock Actuel</th>
+                            <th>Seuil Minimum</th>
+                            <th>À Commander</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="alertsTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal pour ajouter/modifier produit -->
+    <div id="productModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('productModal')">&times;</span>
+            <h2 id="modalTitle">Ajouter un Produit</h2>
+            <form id="productForm">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Nom du Produit</label>
+                        <input type="text" id="productName" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Fournisseur</label>
+                        <select id="productSupplier" required></select>
+                    </div>
+                    <div class="form-group">
+                        <label>Stock Initial</label>
+                        <input type="number" id="productStock" min="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Seuil Minimum</label>
+                        <input type="number" id="productMinThreshold" min="1" value="10" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Seuil Maximum</label>
+                        <input type="number" id="productMaxThreshold" min="1" value="100" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Prix Unitaire (FCFA)</label>
+                        <input type="number" id="productPrice" min="0" step="0.01" required>
+                    </div>
+                </div>
+                <div style="text-align: center; margin-top: 20px;">
+                    <button type="submit" class="btn btn-success">💾 Enregistrer</button>
+                    <button type="button" class="btn btn-danger" onclick="closeModal('productModal')">❌ Annuler</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Modal pour entrée stock -->
+    <div id="entryModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('entryModal')">&times;</span>
+            <h2>📥 Entrée de Stock</h2>
+            <form id="entryForm">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Produit</label>
+                        <select id="entryProduct" required></select>
+                    </div>
+                    <div class="form-group">
+                        <label>Quantité</label>
+                        <input type="number" id="entryQuantity" min="1" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Motif</label>
+                        <input type="text" id="entryReason" placeholder="Ex: Réapprovisionnement" required>
+                    </div>
+                </div>
+                <div style="text-align: center; margin-top: 20px;">
+                    <button type="submit" class="btn btn-success">✅ Confirmer Entrée</button>
+                    <button type="button" class="btn btn-danger" onclick="closeModal('entryModal')">❌ Annuler</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Modal pour sortie stock -->
+    <div id="exitModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('exitModal')">&times;</span>
+            <h2>📤 Sortie de Stock</h2>
+            <form id="exitForm">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Produit</label>
+                        <select id="exitProduct" required></select>
+                    </div>
+                    <div class="form-group">
+                        <label>Quantité</label>
+                        <input type="number" id="exitQuantity" min="1" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Motif</label>
+                        <select id="exitReason" required>
+                            <option value="">Sélectionner un motif</option>
+                            <option value="Vente">Vente</option>
+                            <option value="Défectueux">Produit défectueux</option>
+                            <option value="Périmé">Produit périmé</option>
+                            <option value="Perte">Perte/Vol</option>
+                            <option value="Retour">Retour fournisseur</option>
+                            <option value="Autre">Autre</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="text-align: center; margin-top: 20px;">
+                    <button type="submit" class="btn btn-warning">✅ Confirmer Sortie</button>
+                    <button type="button" class="btn btn-danger" onclick="closeModal('exitModal')">❌ Annuler</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Données des fournisseurs
+        const suppliers = [
+            { id: 1, name: "Mr Joel" },
+            { id: 2, name: "Groupe Ship" },
+            { id: 3, name: "Mme Gladys" },
+            { id: 4, name: "Mr Guy" },
+            { id: 5, name: "Mr Michael" },
+            { id: 6, name: "Mme Esther" },
+            { id: 7, name: "Mme Ada" },
+            { id: 8, name: "Groupe Alliance Cosmétique" },
+            { id: 9, name: "Mr Serge" },
+            { id: 10, name: "Mr Duval" },
+            { id: 11, name: "Mr Ferrari" },
+            { id: 12, name: "Mr Ali" },
+            { id: 13, name: "Mr Ntsika" },
+            { id: 14, name: "Mr Jean" },
+            { id: 15, name: "Mr Eli" },
+            { id: 16, name: "Mr Samba" },
+            { id: 17, name: "Mr Winner" },
+            { id: 18, name: "Mme Makon" },
+            { id: 19, name: "Mme Essential" },
+            { id: 20, name: "Mme Zara" },
+            { id: 21, name: "Mr Therny" },
+            { id: 22, name: "Mme Wilna" },
+            { id: 23, name: "Mme Priscille" }
+        ];
+
+        // Données des produits avec leurs fournisseurs
+        let products = [
+            // Groupe Ship (id: 2)
+            { id: 1, name: "Gel Doré", supplierId: 2, stock: 15, minThreshold: 10, maxThreshold: 50, price: 2500 },
+            { id: 2, name: "Gel intime", supplierId: 2, stock: 8, minThreshold: 5, maxThreshold: 30, price: 3000 },
+            { id: 3, name: "Collagen Night Care", supplierId: 2, stock: 12, minThreshold: 8, maxThreshold: 40, price: 4500 },
+            { id: 4, name: "Smart anti snoring", supplierId: 2, stock: 5, minThreshold: 3, maxThreshold: 20, price: 8000 },
+            { id: 5, name: "Snore Free Noseclip", supplierId: 2, stock: 7, minThreshold: 5, maxThreshold: 25, price: 6000 },
+            { id: 6, name: "Lunettes manche Doré noire", supplierId: 2, stock: 25, minThreshold: 10, maxThreshold: 50, price: 3500 },
+            { id: 7, name: "Lunettes manche marron", supplierId: 2, stock: 20, minThreshold: 10, maxThreshold: 50, price: 3500 },
+            { id: 8, name: "Lunettes fumée", supplierId: 2, stock: 18, minThreshold: 10, maxThreshold: 50, price: 4000 },
+            { id: 9, name: "Poudre Miracle Withener", supplierId: 2, stock: 30, minThreshold: 15, maxThreshold: 60, price: 5000 },
+            { id: 10, name: "Baskets Snickers", supplierId: 2, stock: 12, minThreshold: 5, maxThreshold: 30, price: 15000 },
+            { id: 11, name: "Chaussures carton Noire", supplierId: 2, stock: 8, minThreshold: 5, maxThreshold: 25, price: 12000 },
+            { id: 12, name: "Chaussures carton Marron", supplierId: 2, stock: 6, minThreshold: 5, maxThreshold: 25, price: 12000 },
+            { id: 13, name: "Chaussures hors carton noire", supplierId: 2, stock: 10, minThreshold: 5, maxThreshold: 30, price: 10000 },
+            { id: 14, name: "Chaussures hors carton marron", supplierId: 2, stock: 9, minThreshold: 5, maxThreshold: 30, price: 10000 },
+            { id: 15, name: "Chaussures Marron-Noire", supplierId: 2, stock: 7, minThreshold: 5, maxThreshold: 30, price: 11000 },
+
+            // Mme Gladys (id: 3)
+            { id: 16, name: "Nuisettes 3 en 1", supplierId: 3, stock: 22, minThreshold: 10, maxThreshold: 50, price: 4500 },
+            { id: 17, name: "Nuisettes 4 en 1", supplierId: 3, stock: 18, minThreshold: 10, maxThreshold: 50, price: 5500 },
+            { id: 18, name: "Demis", supplierId: 3, stock: 35, minThreshold: 15, maxThreshold: 60, price: 2000 },
+            { id: 19, name: "Pantalon Ankara", supplierId: 3, stock: 14, minThreshold: 8, maxThreshold: 40, price: 6000 },
+            { id: 20, name: "Culotte Ankara", supplierId: 3, stock: 28, minThreshold: 15, maxThreshold: 50, price: 3000 },
+            { id: 21, name: "Joggings", supplierId: 3, stock: 16, minThreshold: 10, maxThreshold: 40, price: 7500 },
+            { id: 22, name: "Montre", supplierId: 3, stock: 11, minThreshold: 5, maxThreshold: 30, price: 12000 },
+
+            // Mme Ada (id: 7)
+            { id: 23, name: "Gros savon 2 en 1", supplierId: 7, stock: 45, minThreshold: 20, maxThreshold: 80, price: 1500 },
+            { id: 24, name: "Petit savon 2 en 1", supplierId: 7, stock: 60, minThreshold: 30, maxThreshold: 100, price: 1000 },
+            { id: 25, name: "Savon Hydratant", supplierId: 7, stock: 38, minThreshold: 20, maxThreshold: 70, price: 1800 },
+            { id: 26, name: "Savon Exfoliating", supplierId: 7, stock: 32, minThreshold: 15, maxThreshold: 60, price: 2200 },
+            { id: 27, name: "Serum Anti-Tâche", supplierId: 7, stock: 25, minThreshold: 10, maxThreshold: 50, price: 8500 },
+            { id: 28, name: "Serum Anti-Melasma", supplierId: 7, stock: 18, minThreshold: 10, maxThreshold: 40, price: 9500 },
+            { id: 29, name: "Crème réparatrice", supplierId: 7, stock: 22, minThreshold: 12, maxThreshold: 45, price: 7000 },
+            { id: 30, name: "Crème éclat", supplierId: 7, stock: 28, minThreshold: 15, maxThreshold: 50, price: 6500 },
+            { id: 31, name: "Collagen Peptides", supplierId: 7, stock: 12, minThreshold: 8, maxThreshold: 35, price: 12000 },
+            { id: 32, name: "Masques", supplierId: 7, stock: 40, minThreshold: 20, maxThreshold: 70, price: 3500 },
+            { id: 33, name: "Lait Hydratant", supplierId: 7, stock: 35, minThreshold: 18, maxThreshold: 60, price: 4500 },
+            { id: 34, name: "Lait Éclaircissant", supplierId: 7, stock: 30, minThreshold: 15, maxThreshold: 55, price: 5500 },
+
+            // Mme Esther (id: 6)
+            { id: 35, name: "Simi", supplierId: 6, stock: 8, minThreshold: 5, maxThreshold: 25, price: 4000 },
+            { id: 36, name: "Irum bouteille", supplierId: 6, stock: 12, minThreshold: 8, maxThreshold: 30, price: 6500 },
+                        { id: 37, name: "Gros pot Minu", supplierId: 6, stock: 15, minThreshold: 10, maxThreshold: 40, price: 8000 },
+            { id: 38, name: "Petit pot Minu", supplierId: 6, stock: 20, minThreshold: 12, maxThreshold: 45, price: 6000 },
+            { id: 39, name: "Hyper derma", supplierId: 6, stock: 10, minThreshold: 6, maxThreshold: 30, price: 15000 },
+
+            // Mr Guy (id: 4)
+            { id: 40, name: "Sac à dos", supplierId: 4, stock: 25, minThreshold: 15, maxThreshold: 50, price: 9500 },
+            { id: 41, name: "Trousses", supplierId: 4, stock: 38, minThreshold: 20, maxThreshold: 70, price: 4500 },
+            { id: 42, name: "Crayons", supplierId: 4, stock: 100, minThreshold: 50, maxThreshold: 200, price: 500 },
+            { id: 43, name: "Apple Watch", supplierId: 4, stock: 8, minThreshold: 5, maxThreshold: 20, price: 75000 },
+
+            // Mr Winner (id: 17)
+            { id: 44, name: "Pommade énergie verte gros pot", supplierId: 17, stock: 12, minThreshold: 8, maxThreshold: 35, price: 6500 },
+            { id: 45, name: "Pommade énergie verte petit pot", supplierId: 17, stock: 18, minThreshold: 10, maxThreshold: 40, price: 4500 },
+            { id: 46, name: "Pommade énergie noire", supplierId: 17, stock: 14, minThreshold: 8, maxThreshold: 35, price: 4500 },
+            { id: 47, name: "Pommade énergie citron", supplierId: 17, stock: 16, minThreshold: 10, maxThreshold: 40, price: 4500 },
+            { id: 48, name: "Bouteille de tisane", supplierId: 17, stock: 22, minThreshold: 12, maxThreshold: 50, price: 3500 },
+
+            // Mme Makon (id: 18)
+            { id: 49, name: "Lace Glue bouteille rose", supplierId: 18, stock: 15, minThreshold: 10, maxThreshold: 40, price: 5500 },
+            { id: 50, name: "Buttocks", supplierId: 18, stock: 10, minThreshold: 6, maxThreshold: 30, price: 12000 },
+            { id: 51, name: "Formule Ventre Plat", supplierId: 18, stock: 18, minThreshold: 12, maxThreshold: 45, price: 8500 },
+            { id: 52, name: "Formule Minceur", supplierId: 18, stock: 20, minThreshold: 15, maxThreshold: 50, price: 8000 },
+            { id: 53, name: "Virility", supplierId: 18, stock: 12, minThreshold: 8, maxThreshold: 35, price: 15000 },
+
+            // Mme Essential (id: 19)
+            { id: 54, name: "Écouteurs", supplierId: 19, stock: 25, minThreshold: 15, maxThreshold: 60, price: 6500 },
+            { id: 55, name: "Super booster", supplierId: 19, stock: 30, minThreshold: 20, maxThreshold: 70, price: 4500 },
+            { id: 56, name: "Mini ventilateur", supplierId: 19, stock: 18, minThreshold: 10, maxThreshold: 40, price: 8500 },
+            { id: 57, name: "Mini Aspirateur", supplierId: 19, stock: 12, minThreshold: 8, maxThreshold: 30, price: 12000 },
+
+            // Mme Zara (id: 20)
+            { id: 58, name: "Dexe Shampoings", supplierId: 20, stock: 40, minThreshold: 20, maxThreshold: 80, price: 3500 },
+            { id: 59, name: "Boxers 2xl", supplierId: 20, stock: 35, minThreshold: 25, maxThreshold: 70, price: 2500 },
+            { id: 60, name: "Boxers 3xl", supplierId: 20, stock: 28, minThreshold: 20, maxThreshold: 60, price: 2500 },
+            { id: 61, name: "Boxers 4xl", supplierId: 20, stock: 22, minThreshold: 15, maxThreshold: 50, price: 2500 },
+
+            // Mr Eli (id: 15)
+            { id: 62, name: "Sadoer", supplierId: 15, stock: 15, minThreshold: 10, maxThreshold: 40, price: 7500 },
+            { id: 63, name: "Sadoer Eyes", supplierId: 15, stock: 12, minThreshold: 8, maxThreshold: 35, price: 9500 },
+
+            // Mr Duval (id: 10)
+            { id: 64, name: "Parfum de voiture", supplierId: 10, stock: 30, minThreshold: 15, maxThreshold: 60, price: 4500 },
+
+            // Mr Therny (id: 21)
+            { id: 65, name: "The snail", supplierId: 21, stock: 18, minThreshold: 12, maxThreshold: 45, price: 8500 },
+
+            // Mr Jean (id: 14)
+            { id: 66, name: "Moika cream", supplierId: 14, stock: 22, minThreshold: 15, maxThreshold: 50, price: 7500 },
+            { id: 67, name: "Moika Triple power", supplierId: 14, stock: 18, minThreshold: 12, maxThreshold: 45, price: 8500 },
+            { id: 68, name: "Slimming", supplierId: 14, stock: 14, minThreshold: 10, maxThreshold: 40, price: 9500 },
+            { id: 69, name: "Mk", supplierId: 14, stock: 20, minThreshold: 15, maxThreshold: 50, price: 7000 },
+
+            // Mr Joel (id: 1)
+            { id: 70, name: "B3", supplierId: 1, stock: 25, minThreshold: 15, maxThreshold: 60, price: 6500 },
+
+            // Mr Samba (id: 16)
+            { id: 71, name: "Étui iPhone 11 Pro max noir écran clair", supplierId: 16, stock: 12, minThreshold: 8, maxThreshold: 30, price: 5500 },
+            { id: 72, name: "Étui iPhone 11 6.5\" noir écran fumé", supplierId: 16, stock: 15, minThreshold: 10, maxThreshold: 35, price: 5000 },
+            { id: 73, name: "Étui iPhone 11 6.1\" noir écran fumé", supplierId: 16, stock: 18, minThreshold: 12, maxThreshold: 40, price: 5000 },
+            { id: 74, name: "Étui iPhone 12 noir écran clair", supplierId: 16, stock: 14, minThreshold: 10, maxThreshold: 35, price: 5500 },
+            { id: 75, name: "Étui iPhone 12 Pro max écran fumé", supplierId: 16, stock: 10, minThreshold: 8, maxThreshold: 30, price: 6000 },
+            { id: 76, name: "Étui iPhone 13 Pro écran clair", supplierId: 16, stock: 16, minThreshold: 12, maxThreshold: 40, price: 6500 },
+            { id: 77, name: "Étui iPhone 13 Pro max écran clair", supplierId: 16, stock: 12, minThreshold: 10, maxThreshold: 35, price: 7000 },
+            { id: 78, name: "Étui iPhone 14 6.1\" écran fumé", supplierId: 16, stock: 20, minThreshold: 15, maxThreshold: 50, price: 5500 },
+            { id: 79, name: "Étui iPhone 15 6.1\" écran fumé", supplierId: 16, stock: 18, minThreshold: 15, maxThreshold: 50, price: 6000 },
+            { id: 80, name: "Étui iPhone 15 Pro max écran clair", supplierId: 16, stock: 14, minThreshold: 10, maxThreshold: 40, price: 7500 },
+            { id: 81, name: "Étui iPhone 16 6.1\" écran fumé", supplierId: 16, stock: 12, minThreshold: 10, maxThreshold: 35, price: 6500 },
+            { id: 82, name: "Étui iPhone 16 Pro noir écran fumé", supplierId: 16, stock: 10, minThreshold: 8, maxThreshold: 30, price: 7000 },
+            { id: 83, name: "Étui iPhone 16 écran clair", supplierId: 16, stock: 15, minThreshold: 12, maxThreshold: 40, price: 6500 },
+            { id: 84, name: "Étui iPhone 16 Pro max écran clair", supplierId: 16, stock: 8, minThreshold: 6, maxThreshold: 25, price: 8000 },
+
+            // Mr Ali (id: 12)
+            { id: 85, name: "Prothèse dentaire", supplierId: 12, stock: 6, minThreshold: 4, maxThreshold: 20, price: 25000 },
+
+            // Mr Ferrari (id: 11)
+            { id: 86, name: "Ronfit forte", supplierId: 11, stock: 15, minThreshold: 10, maxThreshold: 40, price: 8500 },
+
+            // Mr Serge (id: 9)
+            { id: 87, name: "Café", supplierId: 9, stock: 40, minThreshold: 20, maxThreshold: 80, price: 3500 },
+            { id: 88, name: "Lotions", supplierId: 9, stock: 35, minThreshold: 20, maxThreshold: 70, price: 4500 },
+            { id: 89, name: "Parfum de bouche", supplierId: 9, stock: 28, minThreshold: 15, maxThreshold: 50, price: 3000 },
+            { id: 90, name: "Sprays", supplierId: 9, stock: 32, minThreshold: 20, maxThreshold: 60, price: 3500 },
+
+            // Mr Michael (id: 5)
+            { id: 91, name: "Gold Caviar", supplierId: 5, stock: 12, minThreshold: 8, maxThreshold: 30, price: 18000 },
+            { id: 92, name: "Acné", supplierId: 5, stock: 18, minThreshold: 12, maxThreshold: 45, price: 7500 },
+            { id: 93, name: "Thé rose", supplierId: 5, stock: 25, minThreshold: 15, maxThreshold: 50, price: 4500 },
+            { id: 94, name: "Thé vert", supplierId: 5, stock: 30, minThreshold: 20, maxThreshold: 60, price: 4000 },
+
+            // Mme Wilna (id: 22)
+            { id: 95, name: "Perruques avec bandeau", supplierId: 22, stock: 15, minThreshold: 10, maxThreshold: 40, price: 12000 },
+            { id: 96, name: "Perruques sans bandeau", supplierId: 22, stock: 18, minThreshold: 12, maxThreshold: 45, price: 15000 },
+            { id: 97, name: "Pose tête Perruques", supplierId: 22, stock: 22, minThreshold: 15, maxThreshold: 50, price: 8000 },
+            { id: 98, name: "Sac à main", supplierId: 22, stock: 14, minThreshold: 10, maxThreshold: 35, price: 18000 }
+        ];
+
+        // Données des mouvements
+        let movements = [
+            { date: "2023-09-15", type: "entry", productId: 1, quantity: 50, reason: "Réapprovisionnement", previousStock: 0, newStock: 50 },
+            { date: "2023-09-16", type: "exit", productId: 1, quantity: 15, reason: "Vente", previousStock: 50, newStock: 35 },
+            { date: "2023-09-17", type: "exit", productId: 2, quantity: 12, reason: "Vente", previousStock: 20, newStock: 8 },
+            { date: "2023-09-18", type: "entry", productId: 43, quantity: 10, reason: "Nouvelle commande", previousStock: 0, newStock: 10 },
+            { date: "2023-09-19", type: "exit", productId: 43, quantity: 2, reason: "Vente", previousStock: 10, newStock: 8 },
+            { date: "2023-09-20", type: "entry", productId: 23, quantity: 100, reason: "Réapprovisionnement", previousStock: 0, newStock: 100 },
+            { date: "2023-09-21", type: "exit", productId: 23, quantity: 55, reason: "Vente", previousStock: 100, newStock: 45 },
+            { date: "2023-09-22", type: "exit", productId: 70, quantity: 10, reason: "Vente", previousStock: 35, newStock: 25 },
+            { date: "2023-09-23", type: "entry", productId: 85, quantity: 10, reason: "Nouvelle commande", previousStock: 0, newStock: 10 },
+            { date: "2023-09-24", type: "exit", productId: 85, quantity: 4, reason: "Vente", previousStock: 10, newStock: 6 }
+        ];
+
+        // Fonctions principales
+        function showTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            document.getElementById(tabId).classList.add('active');
+            document.querySelector(`[onclick="showTab('${tabId}')"]`).classList.add('active');
+            
+            if (tabId === 'stock') updateStats();
+            if (tabId === 'alerts') generateAlerts();
+        }
+
+        function populateSupplierSelect() {
+            const select = document.getElementById('productSupplier');
+            select.innerHTML = '';
+            suppliers.forEach(supplier => {
+                const option = document.createElement('option');
+                option.value = supplier.id;
+                option.textContent = supplier.name;
+                select.appendChild(option);
+            });
+        }
+
+        function populateProductSelects() {
+            const entrySelect = document.getElementById('entryProduct');
+            const exitSelect = document.getElementById('exitProduct');
+            
+            entrySelect.innerHTML = '<option value="">Sélectionner un produit</option>';
+            exitSelect.innerHTML = '<option value="">Sélectionner un produit</option>';
+            
+            products.forEach(product => {
+                const optionEntry = document.createElement('option');
+                optionEntry.value = product.id;
+                optionEntry.textContent = product.name;
+                entrySelect.appendChild(optionEntry);
+                
+                const optionExit = document.createElement('option');
+                optionExit.value = product.id;
+                optionExit.textContent = product.name;
+                exitSelect.appendChild(optionExit);
+            });
+        }
+
+        function populateSupplierFilter() {
+            const filter = document.getElementById('supplierFilter');
+            filter.innerHTML = '<option value="">Tous les fournisseurs</option>';
+            suppliers.forEach(supplier => {
+                const option = document.createElement('option');
+                option.value = supplier.id;
+                option.textContent = supplier.name;
+                filter.appendChild(option);
+            });
+        }
+
+        function getSupplierName(supplierId) {
+            const supplier = suppliers.find(s => s.id === supplierId);
+            return supplier ? supplier.name : 'Inconnu';
+        }
+
+        function getProductName(productId) {
+            const product = products.find(p => p.id === productId);
+            return product ? product.name : 'Inconnu';
+        }
+
+        function updateStockTable() {
+            const tbody = document.getElementById('stockTableBody');
+            tbody.innerHTML = '';
+            
+            const searchValue = document.getElementById('searchStock').value.toLowerCase();
+            const supplierFilter = document.getElementById('supplierFilter').value;
+            const stockFilter = document.getElementById('stockFilter').value;
+            
+            let filteredProducts = products.filter(product => {
+                const matchesSearch = product.name.toLowerCase().includes(searchValue);
+                const matchesSupplier = !supplierFilter || product.supplierId == supplierFilter;
+                
+                let matchesStock = true;
+                if (stockFilter) {
+                    if (stockFilter === 'critical') matchesStock = product.stock <= 5;
+                    else if (stockFilter === 'low') matchesStock = product.stock > 5 && product.stock <= 20;
+                    else if (stockFilter === 'good') matchesStock = product.stock > 20;
+                }
+                
+                return matchesSearch && matchesSupplier && matchesStock;
+            });
+            
+            filteredProducts.forEach(product => {
+                const tr = document.createElement('tr');
+                
+                // Déterminer la classe de statut
+                let statusClass = 'stock-good';
+                let alertBadge = '<span class="alert-badge alert-good">Bon</span>';
+                if (product.stock <= product.minThreshold) {
+                    statusClass = 'stock-low';
+                    alertBadge = '<span class="alert-badge alert-critical">Critique</span>';
+                } else if (product.stock <= product.minThreshold * 1.5) {
+                    statusClass = 'stock-medium';
+                    alertBadge = '<span class="alert-badge alert-low">Bas</span>';
+                }
+                
+                tr.className = statusClass;
+                tr.innerHTML = `
+                    <td>P${String(product.id).padStart(3, '0')}</td>
+                    <td>${product.name}</td>
+                    <td>${getSupplierName(product.supplierId)}</td>
+                    <td>${product.stock}</td>
+                    <td>${product.minThreshold}</td>
+                    <td>${product.maxThreshold}</td>
+                    <td>${formatCurrency(product.price)}</td>
+                    <td>${formatCurrency(product.stock * product.price)}</td>
+                    <td>${alertBadge}</td>
+                    <td>
+                        <button class="btn btn-warning" onclick="editProduct(${product.id})">✏️</button>
+                        <button class="btn btn-danger" onclick="deleteProduct(${product.id})">🗑️</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+            
+            updateStats();
+        }
+
+        function updateMovementsTable() {
+            const tbody = document.getElementById('movementsTableBody');
+            tbody.innerHTML = '';
+            
+            const dateFilter = document.getElementById('dateFilter').value;
+            const typeFilter = document.getElementById('movementTypeFilter').value;
+            
+            let filteredMovements = [...movements];
+            
+            if (dateFilter) {
+                filteredMovements = filteredMovements.filter(m => m.date === dateFilter);
+            }
+            
+            if (typeFilter) {
+                filteredMovements = filteredMovements.filter(m => m.type === typeFilter);
+            }
+            
+            // Trier par date décroissante
+            filteredMovements.sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            filteredMovements.forEach(movement => {
+                const tr = document.createElement('tr');
+                const product = products.find(p => p.id === movement.productId);
+                const productName = product ? product.name : 'Produit inconnu';
+                
+                const typeBadge = movement.type === 'entry' ? 
+                    '<span class="alert-badge alert-good">ENTRÉE</span>' : 
+                    '<span class="alert-badge alert-critical">SORTIE</span>';
+                
+                tr.innerHTML = `
+                    <td>${formatDate(movement.date)}</td>
+                    <td>${typeBadge}</td>
+                    <td>${productName}</td>
+                    <td>${movement.quantity}</td>
+                    <td>${movement.reason}</td>
+                    <td>${movement.previousStock}</td>
+                    <td>${movement.newStock}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function updateSuppliersTable() {
+            const tbody = document.getElementById('suppliersTableBody');
+            tbody.innerHTML = '';
+            
+            suppliers.forEach(supplier => {
+                const supplierProducts = products.filter(p => p.supplierId === supplier.id);
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>F${String(supplier.id).padStart(2, '0')}</td>
+                    <td>${supplier.name}</td>
+                    <td>${supplierProducts.length}</td>
+                    <td><input type="tel" placeholder="Téléphone"></td>
+                    <td><input type="email" placeholder="Email"></td>
+                    <td>
+                        <button class="btn btn-primary">📞 Contacter</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function updateStats() {
+            const critical = products.filter(p => p.stock <= p.minThreshold).length;
+            const low = products.filter(p => p.stock > p.minThreshold && p.stock <= p.minThreshold * 1.5).length;
+            const good = products.filter(p => p.stock > p.minThreshold * 1.5).length;
+            const total = products.length;
+            
+            document.getElementById('criticalCount').textContent = critical;
+            document.getElementById('lowCount').textContent = low;
+            document.getElementById('goodCount').textContent = good;
+            document.getElementById('totalProducts').textContent = total;
+        }
+
+        function generateAlerts() {
+            const tbody = document.getElementById('alertsTableBody');
+            tbody.innerHTML = '';
+            
+            const criticalProducts = products.filter(p => p.stock <= p.minThreshold);
+            const lowProducts = products.filter(p => p.stock > p.minThreshold && p.stock <= p.minThreshold * 1.5);
+            
+            [...criticalProducts, ...lowProducts].sort((a, b) => a.stock - b.stock).forEach(product => {
+                const tr = document.createElement('tr');
+                const priority = product.stock <= product.minThreshold ? 
+                    '<span class="alert-badge alert-critical">HAUTE</span>' : 
+                    '<span class="alert-badge alert-low">MOYENNE</span>';
+                
+                const toOrder = Math.ceil((product.maxThreshold - product.stock) / 2); // Commander la moitié du besoin
+                
+                tr.innerHTML = `
+                    <td>${priority}</td>
+                    <td>${product.name}</td>
+                    <td>${getSupplierName(product.supplierId)}</td>
+                    <td>${product.stock}</td>
+                    <td>${product.minThreshold}</td>
+                    <td>${toOrder}</td>
+                    <td>
+                        <button class="btn btn-success" onclick="orderFromSupplier(${product.supplierId})">🛒 Commander</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function showAddModal() {
+            document.getElementById('modalTitle').textContent = 'Ajouter un Produit';
+            document.getElementById('productForm').reset();
+            document.getElementById('productModal').classList.add('show');
+        }
+
+        function editProduct(productId) {
+            const product = products.find(p => p.id === productId);
+            if (!product) return;
+            
+            document.getElementById('modalTitle').textContent = 'Modifier le Produit';
+            document.getElementById('productName').value = product.name;
+            document.getElementById('productSupplier').value = product.supplierId;
+            document.getElementById('productStock').value = product.stock;
+            document.getElementById('productMinThreshold').value = product.minThreshold;
+            document.getElementById('productMaxThreshold').value = product.maxThreshold;
+            document.getElementById('productPrice').value = product.price;
+            
+            document.getElementById('productModal').classList.add('show');
+        }
+
+        function deleteProduct(productId) {
+            if (confirm('Êtes-vous sûr de vouloir supprimer ce produit ?')) {
+                products = products.filter(p => p.id !== productId);
+                movements = movements.filter(m => m.productId !== productId);
+                updateStockTable();
+                updateMovementsTable();
+            }
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('show');
+        }
+
+        function showEntryModal() {
+            document.getElementById('entryForm').reset();
+            document.getElementById('entryModal').classList.add('show');
+        }
+
+        function showExitModal() {
+            document.getElementById('exitForm').reset();
+            document.getElementById('exitModal').classList.add('show');
+        }
+
+        function orderFromSupplier(supplierId) {
+            alert(`Commande envoyée à ${getSupplierName(supplierId)} pour réapprovisionnement.`);
+        }
+
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('fr-FR', { 
+                style: 'currency', 
+                currency: 'XOF',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            }).format(amount);
+        }
+
+        function formatDate(dateString) {
+            const options = { year: 'numeric', month: 'short', day: 'numeric' };
+            return new Date(dateString).toLocaleDateString('fr-FR', options);
+        }
+
+        function exportToExcel() {
+            alert("Fonction d'export vers Excel disponible dans la version complète");
+        }
+
+        // Événements
+        document.getElementById('searchStock').addEventListener('input', updateStockTable);
+        document.getElementById('supplierFilter').addEventListener('change', updateStockTable);
+        document.getElementById('stockFilter').addEventListener('change', updateStockTable);
+        document.getElementById('dateFilter').addEventListener('input', updateMovementsTable);
+        document.getElementById('movementTypeFilter').addEventListener('change', updateMovementsTable);
+
+        // Gestion du formulaire d'ajout/modification de produit
+        document.getElementById('productForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('productName').value;
+            const supplierId = parseInt(document.getElementById('productSupplier').value);
+            const stock = parseInt(document.getElementById('productStock').value);
+            const minThreshold = parseInt(document.getElementById('productMinThreshold').value);
+            const maxThreshold = parseInt(document.getElementById('productMaxThreshold').value);
+            const price = parseFloat(document.getElementById('productPrice').value);
+            
+            // Dans une version complète, on mettrait à jour ou ajouterait le produit
+            closeModal('productModal');
+            updateStockTable();
+        });
+
+        // Gestion du formulaire d'entrée de stock
+        document.getElementById('entryForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const productId = parseInt(document.getElementById('entryProduct').value);
+            const quantity = parseInt(document.getElementById('entryQuantity').value);
+            const reason = document.getElementById('entryReason').value;
+            
+            const product = products.find(p => p.id === productId);
+            if (!product) return;
+            
+            const previousStock = product.stock;
+            product.stock += quantity;
+            
+            movements.push({
+                date: new Date().toISOString().split('T')[0],
+                type: 'entry',
+                productId: productId,
+                quantity: quantity,
+                reason: reason,
+                previousStock: previousStock,
+                newStock: product.stock
+            });
+            
+            closeModal('entryModal');
+            updateStockTable();
+            updateMovementsTable();
+        });
+
+        // Gestion du formulaire de sortie de stock
+        document.getElementById('exitForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const productId = parseInt(document.getElementById('exitProduct').value);
+            const quantity = parseInt(document.getElementById('exitQuantity').value);
+            const reason = document.getElementById('exitReason').value;
+            
+            const product = products.find(p => p.id === productId);
+            if (!product) return;
+            
+            if (quantity > product.stock) {
+                alert('Quantité en sortie supérieure au stock disponible !');
+                return;
+            }
+            
+            const previousStock = product.stock;
+            product.stock -= quantity;
+            
+            movements.push({
+                date: new Date().toISOString().split('T')[0],
+                type: 'exit',
+                productId: productId,
+                quantity: quantity,
+                reason: reason,
+                previousStock: previousStock,
+                newStock: product.stock
+            });
+            
+            closeModal('exitModal');
+            updateStockTable();
+            updateMovementsTable();
+        });
+
+        // Initialisation
+        window.onload = function() {
+            populateSupplierSelect();
+            populateProductSelects();
+            populateSupplierFilter();
+            updateStockTable();
+            updateMovementsTable();
+            updateSuppliersTable();
+            generateAlerts();
+        };
+    </script>
+</body>
+</html>

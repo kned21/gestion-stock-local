@@ -1,0 +1,55 @@
+Gestion-Stock/
+├── index.html
+├── assets/
+│   ├── css/
+│   │   ├── style.css
+│   │   ├── components.css
+│   │   └── responsive.css
+│   ├── js/
+│   │   ├── script.js
+│   │   ├── data.js
+│   │   ├── components.js
+│   │   ├── utils.js
+│   │   └── export.js
+│   └── libs/
+│       ├── jquery-3.6.0.min.js
+│       ├── tailwind-1.9.6.min.css
+│       ├── chart.min.js
+│       ├── xlsx.full.min.js
+│       ├── jspdf.umd.min.js
+│       ├── sweetalert2.min.js
+│       └── datatables.min.js
+│       └── localforage.min.js
+│       └── moment.min.js
+│       └── printThis.min.js
+├── data/
+│   └── backup/
+├── exports/
+├── config/
+│   └── app.config.js
+└── README.md
+
+Bibliothèques recommandées pour votre projet :
+
+1. jQuery 3.6.0 - Manipulation DOM et AJAX
+2. Tailwind CSS 1.9.6 - Framework CSS moderne
+3. Chart.js - Graphiques et statistiques
+4. SheetJS (xlsx) - Export Excel avancé
+5. jsPDF - Export PDF
+6. SweetAlert2 - Alertes et confirmations élégantes
+7. DataTables - Tableaux avancés avec tri/filtre
+8. LocalForage - Stockage local avancé
+9. Moment.js - Gestion des dates
+10. PrintThis - Impression avancée
+
+Fonctionnalités à ajouter :
+- Dashboard avec graphiques
+- Export PDF et Excel avancés
+- Notifications push
+- Sauvegarde automatique
+- Gestion des utilisateurs
+- Historique détaillé
+- Recherche avancée
+- Mode hors-ligne
+- Impression de rapports
+- API REST simulation

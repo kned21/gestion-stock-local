@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Système de Gestion de Stock Pro</title>
+    
+    <!-- CSS Libraries -->
+    <link href="assets/libs/tailwind-1.9.6.min.css" rel="stylesheet">
+    <link href="assets/libs/datatables.min.css" rel="stylesheet">
+    <link href="assets/libs/sweetalert2.min.css" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <link href="assets/css/style.css" rel="stylesheet">
+    <link href="assets/css/components.css" rel="stylesheet">
+    <link href="assets/css/responsive.css" rel="stylesheet">
+</head>
+<body class="bg-gradient-to-br from-blue-500 to-purple-600 min-h-screen">
+    <!-- Header -->
+    <header class="bg-white/95 backdrop-blur-sm shadow-xl">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <div class="text-3xl">🏪</div>
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-800">Gestion Stock Pro</h1>
+                        <p class="text-gray-600 text-sm">Système avancé avec alertes et analytics</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="stats-mini flex space-x-4">
+                        <div class="stat-mini bg-red-100 text-red-800 px-3 py-1 rounded-full">
+                            <span class="font-semibold" id="headerCritical">0</span>
+                            <span class="text-xs">Critique</span>
+                        </div>
+                        <div class="stat-mini bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full">
+                            <span class="font-semibold" id="headerLow">0</span>
+                            <span class="text-xs">Bas</span>
+                        </div>
+                    </div>
+                    <button id="settingsBtn" class="p-2 hover:bg-gray-100 rounded-lg">⚙️</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="container mx-auto px-6 py-8">
+        <div class="bg-white/95 backdrop-blur-sm rounded-3xl shadow-2xl overflow-hidden">
+            
+            <!-- Navigation Tabs -->
+            <div class="tabs-container">
+                <nav class="flex bg-gray-50 border-b-2 border-blue-500">
+                    <button class="tab-btn active" data-tab="dashboard">📊 Dashboard</button>
+                    <button class="tab-btn" data-tab="stock">📦 Stock</button>
+                    <button class="tab-btn" data-tab="movements">🔄 Mouvements</button>
+                    <button class="tab-btn" data-tab="suppliers">🏭 Fournisseurs</button>
+                    <button class="tab-btn" data-tab="alerts">⚠️ Alertes</button>
+                    <button class="tab-btn" data-tab="reports">📈 Rapports</button>
+                </nav>
+            </div>
+
+            <!-- Dashboard Tab -->
+            <div id="dashboard" class="tab-content active">
+                <div class="p-8">
+                    <!-- Quick Stats -->
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                        <div class="stat-card bg-gradient-to-r from-blue-500 to-blue-600">
+                            <div class="stat-number" id="totalProductsStat">0</div>
+                            <div class="stat-label">Total Produits</div>
+                            <div class="stat-icon">📦</div>
+                        </div>
+                        <div class="stat-card bg-gradient-to-r from-green-500 to-green-600">
+                            <div class="stat-number" id="totalValueStat">0 FCFA</div>
+                            <div class="stat-label">Valeur Stock</div>
+                            <div class="stat-icon">💰</div>
+                        </div>
+                        <div class="stat-card bg-gradient-to-r from-orange-500 to-orange-600">
+                            <div class="stat-number" id="lowStockStat">0</div>
+                            <div class="stat-label">Alertes Stock</div>
+                            <div class="stat-icon">⚠️</div>
+                        </div>
+                        <div class="stat-card bg-gradient-to-r from-purple-500 to-purple-600">
+                            <div class="stat-number" id="suppliersStat">0</div>
+                            <div class="stat-label">Fournisseurs</div>
+                            <div class="stat-icon">🏭</div>
+                        </div>
+                    </div>
+
+                    <!-- Charts Section -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                        <div class="chart-container">
+                            <h3 class="chart-title">Répartition du Stock</h3>
+                            <canvas id="stockChart" width="400" height="200"></canvas>
+                        </div>
+                        <div class="chart-container">
+                            <h3 class="chart-title">Mouvements Récents</h3>
+                            <canvas id="movementsChart" width="400" height="200"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Recent Activities -->
+                    <div class="recent-activities">
+                        <h3 class="section-title">Activités Récentes</h3>
+                        <div id="recentActivities" class="space-y-3"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stock Tab -->
+            <div id="stock" class="tab-content">
+                <div class="p-8">
+                    <!-- Controls -->
+                    <div class="controls-section mb-6">
+                        <div class="flex flex-wrap gap-4 items-center justify-between">
+                            <div class="flex flex-wrap gap-4 items-center">
+                                <input type="text" id="searchStock" placeholder="🔍 Rechercher..." class="search-input">
+                                <select id="supplierFilter" class="filter-select">
+                                    <option value="">Tous les fournisseurs</option>
+                                </select>
+                                <select id="stockFilter" class="filter-select">
+                                    <option value="">Tous les stocks</option>
+                                    <option value="critical">Stock critique</option>
+                                    <option value="low">Stock bas</option>
+                                    <option value="good">Stock bon</option>
+                                </select>
+                            </div>
+                            <div class="flex gap-3">
+                                <button id="exportExcelBtn" class="btn btn-info">📊 Excel</button>
+                                <button id="exportPdfBtn" class="btn btn-danger">📄 PDF</button>
+                                <button id="addProductBtn" class="btn btn-success">➕ Produit</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Stock Table -->
+                    <div class="table-responsive">
+                        <table id="stockTable" class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Produit</th>
+                                    <th>Fournisseur</th>
+                                    <th>Stock</th>
+                                    <th>Min</th>
+                                    <th>Max</th>
+                                    <th>Prix</th>
+                                    <th>Valeur</th>
+                                    <th>Statut</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="stockTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Movements Tab -->
+            <div id="movements" class="tab-content">
+                <div class="p-8">
+                    <!-- Movement Controls -->
+                    <div class="controls-section mb-6">
+                        <div class="flex flex-wrap gap-4 items-center justify-between">
+                            <div class="flex flex-wrap gap-4 items-center">
+                                <button id="entryBtn" class="btn btn-success">📥 Entrée</button>
+                                <button id="exitBtn" class="btn btn-warning">📤 Sortie</button>
+                                <input type="date" id="dateFilter" class="search-input">
+                                <select id="typeFilter" class="filter-select">
+                                    <option value="">Tous types</option>
+                                    <option value="entry">Entrées</option>
+                                    <option value="exit">Sorties</option>
+                                </select>
+                            </div>
+                            <button id="exportMovementsBtn" class="btn btn-info">📊 Exporter</button>
+                        </div>
+                    </div>
+
+                    <!-- Movements Table -->
+                    <div class="table-responsive">
+                        <table id="movementsTable" class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Type</th>
+                                    <th>Produit</th>
+                                    <th>Quantité</th>
+                                    <th>Motif</th>
+                                    <th>Avant</th>
+                                    <th>Après</th>
+                                </tr>
+                            </thead>
+                            <tbody id="movementsTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Suppliers Tab -->
+            <div id="suppliers" class="tab-content">
+                <div class="p-8">
+                    <div class="controls-section mb-6">
+                        <button id="addSupplierBtn" class="btn btn-success">➕ Fournisseur</button>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table id="suppliersTable" class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Nom</th>
+                                    <th>Produits</th>
+                                    <th>Contact</th>
+                                    <th>Email</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="suppliersTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Alerts Tab -->
+            <div id="alerts" class="tab-content">
+                <div class="p-8">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                        <div class="alert-summary critical">
+                            <div class="alert-count" id="criticalAlerts">0</div>
+                            <div class="alert-label">Critiques</div>
+                        </div>
+                        <div class="alert-summary warning">
+                            <div class="alert-count" id="warningAlerts">0</div>
+                            <div class="alert-label">Avertissements</div>
+                        </div>
+                        <div class="alert-summary info">
+                            <div class="alert-count" id="infoAlerts">0</div>
+                            <div class="alert-label">Informations</div>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table id="alertsTable" class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Priorité</th>
+                                    <th>Produit</th>
+                                    <th>Fournisseur</th>
+                                    <th>Stock</th>
+                                    <th>Seuil</th>
+                                    <th>À Commander</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="alertsTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reports Tab -->
+            <div id="reports" class="tab-content">
+                <div class="p-8">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div class="report-card" data-report="stock-status">
+                            <div class="report-icon">📊</div>
+                            <h3 class="report-title">État du Stock</h3>
+                            <p class="report-desc">Rapport détaillé sur l'état actuel</p>
+                            <button class="btn btn-primary w-full mt-4">Générer</button>
+                        </div>
+                        
+                        <div class="report-card" data-report="movement-analysis">
+                            <div class="report-icon">📈</div>
+                            <h3 class="report-title">Analyse Mouvements</h3>
+                            <p class="report-desc">Tendances et statistiques</p>
+                            <button class="btn btn-primary w-full mt-4">Générer</button>
+                        </div>
+                        
+                        <div class="report-card" data-report="supplier-performance">
+                            <div class="report-icon">🏭</div>
+                            <h3 class="report-title">Performance Fournisseurs</h3>
+                            <p class="report-desc">Évaluation des partenaires</p>
+                            <button class="btn btn-primary w-full mt-4">Générer</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="productModal" class="modal"></div>
+    <div id="movementModal" class="modal"></div>
+    <div id="supplierModal" class="modal"></div>
+    <div id="reportModal" class="modal"></div>
+
+    <!-- JavaScript Libraries -->
+    <script src="assets/libs/jquery-3.6.0.min.js"></script>
+    <script src="assets/libs/chart.min.js"></script>
+    <script src="assets/libs/xlsx.full.min.js"></script>
+    <script src="assets/libs/jspdf.umd.min.js"></script>
+    <script src="assets/libs/html2pdf.bundle.min.js"></script>
+    <script src="assets/libs/sweetalert2.min.js"></script>
+    <script src="assets/libs/datatables.min.js"></script>
+    <script src="assets/libs/moment.min.js"></script>
+    <script src="assets/libs/localforage.min.js"></script>
+    <script src="assets/libs/printThis.js"></script>
+
+    <!-- Custom JavaScript -->
+    <script src="config/app.config.js"></script>
+    <script src="assets/js/data.js"></script>
+    <script src="assets/js/utils.js"></script>
+    <script src="assets/js/components.js"></script>
+    <script src="assets/js/export.js"></script>
+    <script src="assets/js/script.js"></script>
+</body>
+</html>

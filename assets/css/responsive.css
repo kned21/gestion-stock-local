@@ -1,0 +1,95 @@
+/* Complément pour le fichier responsive.css */
+
+/* Responsive pour les écrans mobiles */
+@media (max-width: 768px) {
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .chart-container {
+        height: 250px;
+    }
+    
+    .modal-content {
+        max-width: 95%;
+    }
+    
+    .form-group {
+        margin-bottom: 1rem;
+    }
+    
+    .controls-section {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .tabs-container nav {
+        flex-direction: column;
+    }
+    
+    .tab-btn {
+        width: 100%;
+        border-radius: 0;
+    }
+    
+    .tab-btn:not(:last-child) {
+        border-bottom: 1px solid #cbd5e1;
+    }
+    
+    .data-table {
+        display: block;
+        overflow-x: auto;
+    }
+    
+    .report-card {
+        padding: 1rem;
+    }
+    
+    .report-icon {
+        font-size: 2rem;
+    }
+}
+
+/* Responsive pour les écrans très petits */
+@media (max-width: 480px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .chart-container {
+        height: 200px;
+    }
+    
+    .stat-number {
+        font-size: 2rem;
+    }
+    
+    .section-title {
+        font-size: 1.1rem;
+    }
+    
+    .activity-item {
+        padding: 0.75rem;
+    }
+    
+    .modal-content {
+        padding: 0.5rem;
+    }
+    
+    .modal-header {
+        padding: 0.75rem 1rem;
+    }
+    
+    .modal-body {
+        padding: 0.75rem;
+    }
+    
+    .modal-footer {
+        padding: 0.5rem;
+    }
+    
+    .btn {
+        padding: 0.5rem 1rem;
+        font-size: 0.8rem;
+    }
+}

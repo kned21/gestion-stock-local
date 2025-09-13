@@ -1,0 +1,138 @@
+/* Contenu du fichier sweetalert2.min.css */
+/* Ce fichier contient le CSS pour SweetAlert2 - bibliothèque de notifications élégantes */
+
+/* Je ne peux pas inclure le contenu exact car c'est un fichier minifié,
+   mais voici une version simplifiée pour les besoins de l'exemple */
+.swal2-container {
+    z-index: 1060;
+    overflow: auto;
+}
+
+.swal2-popup {
+    font-family: inherit;
+    font-size: 1.6rem;
+}
+
+.swal2-modal {
+    border-radius: 0.3rem;
+    background: #fff;
+    box-shadow: 0 0 1rem #d3d6db;
+}
+
+.swal2-title {
+    color: #595959;
+    font-weight: 600;
+    text-transform: none;
+    position: relative;
+    margin: 0;
+    padding: 1.25rem 1.75rem 0.75rem;
+    line-height: normal;
+    text-align: center;
+    min-height: 1.2em;
+    word-wrap: break-word;
+}
+
+.swal2-content {
+    color: #545454;
+    font-size: 1.15rem;
+    font-weight: 300;
+    text-align: center;
+    padding: 0 1.75rem;
+    word-wrap: break-word;
+}
+
+.swal2-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    width: 100%;
+    margin: 1.25rem auto 0;
+    padding: 0.45em;
+    box-sizing: border-box;
+}
+
+.swal2-styled {
+    border: 0;
+    border-radius: 0.25em;
+    background: initial;
+    background-color: #3085d6;
+    color: #fff;
+    font-size: 1.0625em;
+    font-weight: 500;
+}
+
+.swal2-confirm {
+    margin: 0.3125em;
+    padding: 0.45em 1.6em;
+    background-color: #3085d6;
+}
+
+.swal2-cancel {
+    background-color: #aaa;
+}
+
+.swal2-icon {
+    width: 5em;
+    height: 5em;
+    border-width: 0.25em;
+    border-radius: 50%;
+    border-style: solid;
+    align-items: center;
+    justify-content: center;
+    margin: 1.25em auto 1.875em;
+    padding: 0;
+    position: relative;
+    box-sizing: content-box;
+    cursor: default;
+}
+
+.swal2-icon.swal2-error {
+    border-color: #f27474;
+    color: #f27474;
+}
+
+.swal2-icon.swal2-warning {
+    border-color: #facea8;
+    color: #f8bb86;
+}
+
+.swal2-icon.swal2-info {
+    border-color: #9de0f6;
+    color: #3fc3ee;
+}
+
+.swal2-icon.swal2-success {
+    border-color: #a5dc86;
+    color: #a5dc86;
+}
+
+/* Toasts */
+.swal2-toast {
+    box-sizing: border-box;
+    flex-direction: row;
+    align-items: center;
+    width: auto;
+    padding: 0.625em;
+    overflow: hidden;
+    background: #fff;
+    box-shadow: 0 0 0.625em #d3d6db;
+}
+
+.swal2-toast .swal2-title {
+    margin: 0;
+    padding: 0 0.6em;
+    font-size: 1em;
+    text-align: initial;
+}
+
+.swal2-toast .swal2-content {
+    margin: 0;
+    padding: 0 0.6em;
+    font-size: 1em;
+    text-align: initial;
+}
+
+.swal2-toast .swal2-icon {
+    margin: 0;
+}

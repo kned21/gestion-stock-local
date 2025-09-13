@@ -1,0 +1,59 @@
+# .gitignore
+
+
+# Fichiers système
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+*.swp
+*~
+
+# Dossiers de sauvegarde
+/data/backup/*
+!/data/backup/.gitkeep
+
+# Fichiers exportés
+/exports/*
+!/exports/.gitkeep
+
+# Fichiers de configuration locaux
+/config/local.config.js
+
+# Fichiers temporaires
+/temp/
+/tmp/
+
+# Fichiers de développement
+/node_modules/
+/bower_components/
+
+# Fichiers de sauvegarde de l'éditeur
+*.sublime-workspace
+*.sublime-project
+*.vscode/
+*.idea/
+
+# Fichiers de cache
+.cache/
+.cache/*
+!/cache/.gitkeep
+
+# Fichiers de déploiement
+.DS_Store
+.deploy/
+.deploy/*
+
+# Fichiers de test
+/test/
+/tests/
+__tests__/
+
+# Captures d'écran (à ajouter manuellement si nécessaire)
+/screenshots/*
+!/screenshots/.gitkeep
+
+# Fichiers de données temporaires
+*.bak
+*.orig
+*.patch
