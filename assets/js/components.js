@@ -402,65 +402,69 @@ function openSupplierModal(supplier = null) {
 
 // Initialiser les tableaux avec DataTables
 function initDataTables() {
-    if ($.fn.DataTable.isDataTable('#stockTable')) {
+    // Vérifier et détruire les instances existantes
+    if ($('#stockTable').length && $.fn.DataTable.isDataTable('#stockTable')) {
         $('#stockTable').DataTable().destroy();
     }
     
-    if ($.fn.DataTable.isDataTable('#movementsTable')) {
+    if ($('#movementsTable').length && $.fn.DataTable.isDataTable('#movementsTable')) {
         $('#movementsTable').DataTable().destroy();
     }
     
-    if ($.fn.DataTable.isDataTable('#suppliersTable')) {
+    if ($('#suppliersTable').length && $.fn.DataTable.isDataTable('#suppliersTable')) {
         $('#suppliersTable').DataTable().destroy();
     }
     
-    if ($.fn.DataTable.isDataTable('#alertsTable')) {
+    if ($('#alertsTable').length && $.fn.DataTable.isDataTable('#alertsTable')) {
         $('#alertsTable').DataTable().destroy();
     }
     
-    // Tableau de stock
-    $('#stockTable').DataTable({
-        language: {
-            url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/fr-FR.json'
-        },
-        order: [[3, 'asc']],
-        pageLength: 10,
-        responsive: true,
-        dom: 'Bfrtip',
-        buttons: [
-            'copy', 'csv', 'excel', 'pdf', 'print'
-        ]
-    });
-    
-    // Tableau des mouvements
-    $('#movementsTable').DataTable({
-        language: {
-            url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/fr-FR.json'
-        },
-        order: [[0, 'desc']],
-        pageLength: 10,
-        responsive: true
-    });
-    
-    // Tableau des fournisseurs
-    $('#suppliersTable').DataTable({
-        language: {
-            url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/fr-FR.json'
-        },
-        order: [[1, 'asc']],
-        pageLength: 10,
-        responsive: true
-    });
-    
-    // Tableau des alertes
-    $('#alertsTable').DataTable({
-        language: {
-            url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/fr-FR.json'
-        },
-        order: [[0, 'asc']],
-        pageLength: 10,
-        responsive: true
-    });
+    // Initialiser uniquement si les éléments existent et sont visibles
+    setTimeout(() => {
+        if ($('#stockTable:visible').length) {
+            $('#stockTable').DataTable({
+                language: {
+                    url: 'assets/libs/fr-FR.json'
+                },
+                order: [[3, 'asc']],
+                pageLength: 10,
+                responsive: true
+            });
+        }
+        
+        if ($('#movementsTable:visible').length) {
+            $('#movementsTable').DataTable({
+                language: {
+                    url: 'assets/libs/fr-FR.json'
+                },
+                order: [[0, 'desc']],
+                pageLength: 10,
+                responsive: true
+            });
+        }
+        
+        if ($('#suppliersTable:visible').length) {
+            $('#suppliersTable').DataTable({
+                language: {
+                    url: 'assets/libs/fr-FR.json'
+                },
+                order: [[1, 'asc']],
+                pageLength: 10,
+                responsive: true
+            });
+        }
+        
+        if ($('#alertsTable:visible').length) {
+            $('#alertsTable').DataTable({
+                language: {
+                    url: 'assets/libs/fr-FR.json'
+                },
+                order: [[0, 'asc']],
+                pageLength: 10,
+                responsive: true
+            });
+        }
+    }, 100);
 }
 
 // Initialiser les graphiques

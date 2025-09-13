@@ -1,4 +1,11 @@
 // Fonctions d'exportation
+// Vérifier si jsPDF est disponible
+let jsPDF;
+if (typeof window !== 'undefined' && window.jspdf) {
+    jsPDF = window.jspdf.jsPDF;
+} else if (typeof window !== 'undefined' && window.jsPDF) {
+    jsPDF = window.jsPDF;
+}
 
 // Exporter le stock vers Excel
 function exportStockToExcel() {
@@ -42,8 +49,15 @@ function exportStockToExcel() {
     showNotification('Export Excel réussi', 'success');
 }
 
+
 // Exporter le stock vers PDF
 function exportStockToPDF() {
+    // Vérifier si jsPDF est disponible
+    if (!jsPDF) {
+        showNotification('La fonctionnalité PDF n\'est pas disponible. Veuillez vérifier les bibliothèques.', 'error');
+        return;
+    }
+    
     // Créer un tableau HTML pour le PDF
     const table = document.createElement('table');
     table.className = 'export-table';
@@ -90,17 +104,17 @@ function exportStockToPDF() {
     const element = document.createElement('div');
     element.className = 'pdf-export-container';
     element.innerHTML = `
-        <h1 class="text-center mb-4">État du Stock - ${formatDate(moment().format('YYYY-MM-DD'))}</h1>
+        <h1 class="text-center mb-4">État du Stock - ${moment().format('DD/MM/YYYY')}</h1>
         ${table.outerHTML}
         <div class="text-right mt-6 text-sm">
             <p>Généré par ${config.appName} - ${config.companyName}</p>
-            <p>Date: ${formatDate(moment().format('YYYY-MM-DD'))}</p>
+            <p>Date: ${moment().format('DD/MM/YYYY')}</p>
         </div>
     `;
     
     document.body.appendChild(element);
     
-    // Configurer jsPDF
+    // Utiliser html2pdf à la place (plus fiable)
     const opt = {
         margin: 10,
         filename: config.export.pdfFileName,
@@ -109,10 +123,14 @@ function exportStockToPDF() {
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
     };
     
-    // Générer le PDF
+    // Générer le PDF avec html2pdf
     html2pdf().set(opt).from(element).save().then(() => {
         document.body.removeChild(element);
         showNotification('Export PDF réussi', 'success');
+    }).catch((error) => {
+        document.body.removeChild(element);
+        console.error('Erreur lors de l\'export PDF:', error);
+        showNotification('Erreur lors de l\'export PDF', 'error');
     });
 }
 
